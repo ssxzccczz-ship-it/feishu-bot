@@ -51,7 +51,7 @@ def load_config():
         "feishu": {"app_id": "", "app_secret": "", "verification_token": "", "encrypt_key": ""},
         "ai": {"provider": "deepseek", "api_key": "", "model": "deepseek-chat", "max_tokens": 4096},
         "server": {"host": "0.0.0.0", "port": 7898},
-        "memory": {"memory_dir": "data/memory", "max_history_messages": 50},
+        "memory": {"memory_dir": "memory_data", "max_history_messages": 50},
     }
 
 cfg = load_config()

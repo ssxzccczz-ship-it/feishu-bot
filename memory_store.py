@@ -46,13 +46,14 @@ class MemoryStore:
             json.dump(messages, f, ensure_ascii=False, indent=2)
         self._cache[user_id] = messages
 
-    def append(self, user_id: str, role: str, content: str):
+    def append(self, user_id: str, role: str, content: str, msg_id: str = ""):
         """追加一条消息"""
         history = self.load(user_id)
         history.append({
             "role": role,
             "content": content,
-            "time": datetime.now().isoformat()
+            "time": datetime.now().isoformat(),
+            "message_id": msg_id,
         })
         self.save(user_id, history)
 

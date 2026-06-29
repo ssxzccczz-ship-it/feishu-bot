@@ -51,7 +51,7 @@ def load_config():
         "feishu": {"app_id": "", "app_secret": "", "verification_token": "", "encrypt_key": ""},
         "ai": {"provider": "deepseek", "api_key": "", "model": "deepseek-chat", "max_tokens": 4096},
         "server": {"host": "0.0.0.0", "port": 7898},
-        "memory": {"memory_dir": "memory", "max_history_messages": 50},
+        "memory": {"memory_dir": "data/memory", "max_history_messages": 50},
     }
 
 cfg = load_config()
@@ -520,7 +520,7 @@ async def feishu_webhook(request: Request):
 
         # 加载历史 → 追加上一条用户消息 → 调 AI → 回复
         memory = get_memory()
-        memory.append(open_id, "user", user_text)
+        memory.append(open_id, "user", user_text, message_id)
         context = memory.get_context_messages(open_id)
 
         log.info(f"上下文消息数: {len(context)}")
@@ -529,13 +529,58 @@ async def feishu_webhook(request: Request):
         reply = await call_ai(context)
 
         # 保存回复到记忆
-        memory.append(open_id, "assistant", reply)
+        memory.append(open_id, "assistant", reply, "reply_" + message_id)
 
         # 发送回复
         result = await send_feishu_message(open_id, "text", reply)
         log.info(f"回复结果: {result}")
 
     return JSONResponse({"code": 0})
+
+
+# ============================================================
+# 记忆同步 API
+# ============================================================
+@app.get("/memory/{user_id}")
+async def get_memory(user_id: str):
+    """获取用户对话历史（用于本地同步）"""
+    memory = get_memory()
+    history = memory.load(user_id)
+    return {"user_id": user_id, "messages": history, "count": len(history)}
+
+
+@app.post("/memory/{user_id}/merge")
+async def merge_memory(user_id: str, request: Request):
+    """合并记忆：云端和本地互相补充"""
+    body = await request.json()
+    local_messages = body.get("messages", [])
+
+    memory = get_memory()
+    cloud_messages = memory.load(user_id)
+
+    # 合并：用 message_id 或 content+time 去重
+    seen = set()
+    merged = []
+
+    # 先加本地消息
+    for m in local_messages:
+        key = m.get("message_id", m.get("content", "")[:50])
+        if key not in seen:
+            seen.add(key)
+            merged.append(m)
+
+    # 再加云端消息
+    for m in cloud_messages:
+        key = m.get("message_id", m.get("content", "")[:50])
+        if key not in seen:
+            seen.add(key)
+            merged.append(m)
+
+    # 按时间排序
+    merged.sort(key=lambda x: x.get("time", ""))
+
+    memory.save(user_id, merged)
+    return {"status": "ok", "merged_count": len(merged)}
 
 
 # ============================================================

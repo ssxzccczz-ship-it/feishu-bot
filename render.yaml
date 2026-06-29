@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: feishu-bot
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python feishu_server.py
+    envVars:
+      - key: FEISHU_APP_ID
+        sync: false
+      - key: FEISHU_APP_SECRET
+        sync: false
+      - key: FEISHU_VERIFY_TOKEN
+        sync: false
+      - key: AI_PROVIDER
+        value: deepseek
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: deepseek-chat
+      - key: AI_MAX_TOKENS
+        value: "4096"
+      - key: MEMORY_DIR
+        value: /tmp/memory
+      - key: MAX_HISTORY
+        value: "50"

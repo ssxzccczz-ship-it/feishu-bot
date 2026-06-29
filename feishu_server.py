@@ -51,7 +51,7 @@ def load_config():
         "feishu": {"app_id": "", "app_secret": "", "verification_token": "", "encrypt_key": ""},
         "ai": {"provider": "deepseek", "api_key": "", "model": "deepseek-chat", "max_tokens": 4096},
         "server": {"host": "0.0.0.0", "port": 7898},
-        "memory": {"memory_dir": "/tmp/memory", "max_history_messages": 50},
+        "memory": {"memory_dir": "memory", "max_history_messages": 50},
     }
 
 cfg = load_config()
@@ -542,9 +542,25 @@ async def feishu_webhook(request: Request):
 # 启动
 # ============================================================
 if __name__ == "__main__":
+    import sys, traceback
+    print("=" * 40, flush=True)
     print("Starting feishu bot server...", flush=True)
+    print(f"Python: {sys.version}", flush=True)
     print(f"Host: {SERVER_HOST}, Port: {SERVER_PORT}", flush=True)
+    print(f"Feishu App: {FEISHU_APP_ID[:10]}...", flush=True)
+    print(f"AI Provider: {AI_PROVIDER}", flush=True)
+    print(f"Memory Dir: {MEMORY_DIR}", flush=True)
+    print("=" * 40, flush=True)
+
+    # Create memory dir early to catch errors
     try:
+        os.makedirs(MEMORY_DIR, exist_ok=True)
+        print(f"Memory dir OK: {MEMORY_DIR}", flush=True)
+    except Exception as e:
+        print(f"WARNING: Could not create memory dir: {e}", flush=True)
+
+    try:
+        print("Starting uvicorn...", flush=True)
         uvicorn.run(
             app,
             host=SERVER_HOST,
@@ -552,7 +568,6 @@ if __name__ == "__main__":
             log_level="info",
         )
     except Exception as e:
-        print(f"FATAL STARTUP ERROR: {e}", flush=True)
-        import traceback
+        print(f"FATAL ERROR: {e}", flush=True)
         traceback.print_exc()
-        raise
+        sys.exit(1)

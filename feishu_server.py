@@ -43,8 +43,16 @@ log = logging.getLogger("feishu-bot")
 # ============================================================
 def load_config():
     config_path = os.environ.get("CONFIG_PATH", os.path.join(os.path.dirname(__file__), "config.json"))
-    with open(config_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    if os.path.exists(config_path):
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    # Fallback defaults (overridden by env vars on cloud)
+    return {
+        "feishu": {"app_id": "", "app_secret": "", "verification_token": "", "encrypt_key": ""},
+        "ai": {"provider": "deepseek", "api_key": "", "model": "deepseek-chat", "max_tokens": 4096},
+        "server": {"host": "0.0.0.0", "port": 7898},
+        "memory": {"memory_dir": "/tmp/memory", "max_history_messages": 50},
+    }
 
 cfg = load_config()
 

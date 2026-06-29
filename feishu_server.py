@@ -542,21 +542,29 @@ async def feishu_webhook(request: Request):
 # 记忆同步 API
 # ============================================================
 @app.get("/memory/{user_id}")
-async def get_memory(user_id: str):
+async def get_memory_endpoint(user_id: str):
     """获取用户对话历史（用于本地同步）"""
-    memory = get_memory()
-    history = memory.load(user_id)
-    return {"user_id": user_id, "messages": history, "count": len(history)}
+    try:
+        memory = get_memory()
+        history = memory.load(user_id)
+        return {"user_id": user_id, "messages": history, "count": len(history)}
+    except Exception as e:
+        log.error(f"Memory GET error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 @app.post("/memory/{user_id}/merge")
-async def merge_memory(user_id: str, request: Request):
+async def merge_memory_endpoint(user_id: str, request: Request):
     """合并记忆：云端和本地互相补充"""
     body = await request.json()
     local_messages = body.get("messages", [])
 
-    memory = get_memory()
-    cloud_messages = memory.load(user_id)
+    try:
+        memory = get_memory()
+        cloud_messages = memory.load(user_id)
+    except Exception as e:
+        log.error(f"Memory merge error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
 
     # 合并：用 message_id 或 content+time 去重
     seen = set()

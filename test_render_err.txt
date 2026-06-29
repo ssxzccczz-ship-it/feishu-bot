@@ -1,0 +1,6 @@
+INFO:     Started server process [29596]
+INFO:     Waiting for application startup.
+2026-06-29 15:22:41 [INFO] 飞书 Claude 机器人启动 → http://0.0.0.0:10000
+2026-06-29 15:22:41 [INFO] 记忆目录: C:\tmp\test_render_memory
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:10000 (Press CTRL+C to quit)

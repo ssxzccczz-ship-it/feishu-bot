@@ -542,9 +542,17 @@ async def feishu_webhook(request: Request):
 # 启动
 # ============================================================
 if __name__ == "__main__":
-    uvicorn.run(
-        app,
-        host=SERVER_HOST,
-        port=SERVER_PORT,
-        log_level="info",
-    )
+    print("Starting feishu bot server...", flush=True)
+    print(f"Host: {SERVER_HOST}, Port: {SERVER_PORT}", flush=True)
+    try:
+        uvicorn.run(
+            app,
+            host=SERVER_HOST,
+            port=SERVER_PORT,
+            log_level="info",
+        )
+    except Exception as e:
+        print(f"FATAL STARTUP ERROR: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
+        raise
